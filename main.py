@@ -12,42 +12,37 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, value):
-        super().__init__(value)
-        if not self.validate_phone(value): print ("wrong phone format. Must contain 10 digits")
-	
-    def validate_phone(self, phone):
-        if len(phone) == 10: return True
-        else: return False
+        self.set_phone(value)
+        
+    def validate_phone(phone_str):
+        if len(phone_str) != 10 or not phone_str.isdigit():
+            raise ValueError(f'Invalid number {phone_str}')
 
-    def set_phone(self, phone):
-        if self.validate_phone(phone): self.value = phone
-        else: print ("wrong phone format. Must contain 10 digits")
-	
-    
+    def set_phone(self, phone_str):
+        Phone.validate_phone(phone_str)
+        super().__init__(phone_str)
+
+
 class Record:
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
 
     def add_phone(self, phone_str):
-        phone_obj = Phone(phone_str)
-        self.phones.append(phone_obj)           
+        Phone.validate_phone(phone_str)
+        self.phones.append(Phone(phone_str))           
 
     def edit_phone(self, phone_str, new_phone_str):
         self.find_phone(phone_str).set_phone(new_phone_str)
 
     def remove_phone(self, phone_str):
-        try:
-            self.phones.remove(self.find_phone(phone_str))
-        except ValueError:
-            pass
+        self.phones.remove(self.find_phone(phone_str))
             
     def find_phone(self, phone_str):
         for phone_obj in self.phones:
-            if phone_str == phone_obj.value: return phone_obj
-        message = f'Phone number {phone_str} not found'
-        print(message)
-        raise ValueError(message)
+            if phone_str == phone_obj.value:
+                return phone_obj
+        raise ValueError(f"Phone number {phone_str} not found")
 
     def __str__(self):
         return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
@@ -57,26 +52,20 @@ class AddressBook(UserDict):
         self.data[record.name.value] = record 
 
     def find(self, name_str):
-        if self.data.get(name_str):
-            return self.data.get(name_str)
-        else:
-            message = f"Name {name_str} is not in the address book"
-            print(message)
-            raise ValueError(message)
+        return self.data[name_str]
 
     def delete(self, name_str):
-        try:
-            self.find(name_str)
-        except ValueError:
-            return
         del self.data[name_str]
 
 
 
-record = Record("john")
-record.add_phone("0123456789")
-record.add_phone("1234567809")
-record.edit_phone("1234567809", "12")
+# record = Record("john")
+# record.add_phone("0123456789")
+# print(record)
+# record.add_phone("1234567809")
+# print(record)
+# record.edit_phone("1234567809", "12")
+# record.remove_phone("1234567809")
         
 
 # Створення нової адресної книги
@@ -96,12 +85,11 @@ jane_record.add_phone("9876543210")
 book.add_record(jane_record)
 
 # Виведення всіх записів у книзі
-for name, record in book.data.items():
-    print(record)
+print(*[record for record in book.data.values()])
 
 # Знаходження та редагування телефону для John
 john = book.find("John")
-john.edit_phone("1234567890", "1112223333")
+john.edit_phone("1234567890", "1112223833")
 
 print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
 
